@@ -1781,22 +1781,22 @@
                 </div>
                 <div class="appointment-form">
                     <h2>Book Free Consultation</h2>
-                    <form id="appointment-form" action="https://docs.google.com/forms/d/e/1FAIpQLSecs0syQlexbviX2-GFRHL418tELcBVxDyLnHhORL47eXZscw/formResponse" method="POST" target="hidden_iframe">
+                    <form id="appointment-form" action="https://formspree.io/f/physionutraclinic" method="POST">
                         <div class="form-group">
                             <label for="name">Full Name *</label>
-                            <input type="text" id="name" name="entry.1869350848" required placeholder="Enter your name">
+                            <input type="text" id="name" name="name" required placeholder="Enter your name">
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone Number *</label>
-                            <input type="tel" id="phone" name="entry.1797725802" required placeholder="+91 00000 00000">
+                            <input type="tel" id="phone" name="phone" required placeholder="+91 00000 00000">
                         </div>
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="entry.350143632" placeholder="your@email.com">
+                            <input type="email" id="email" name="email" placeholder="your@email.com">
                         </div>
                         <div class="form-group">
                             <label for="service">Select Service</label>
-                            <select id="service" name="entry.123456789">
+                            <select id="service" name="service">
                                 <option value="">Choose a service</option>
                                 <option value="Sports Physiotherapy">Sports Physiotherapy</option>
                                 <option value="Pain Management">Pain Management</option>
@@ -1807,9 +1807,15 @@
                                 <option value="Home Visit">Home Visit</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="datetime">Preferred Date & Time</label>
+                            <input type="datetime-local" id="datetime" name="preferred_datetime">
+                        </div>
                         <button type="submit" class="submit-btn">Book Free Consultation</button>
                     </form>
-                    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+                    <div id="form-success" style="display:none; text-align:center; padding: 20px; color: #5ab04a; font-weight: bold;">
+                        ✅ Thank you! Your request has been sent. We will contact you shortly.
+                    </div>
                 </div>
             </div>
         </div>
@@ -2272,12 +2278,38 @@
 
         // Form submission handling
         const appointmentForm = document.getElementById('appointment-form');
+        const formSuccess = document.getElementById('form-success');
         if (appointmentForm) {
-            appointmentForm.addEventListener('submit', function(e) {
-                setTimeout(function() {
-                    alert('Thank you for booking! We will contact you shortly.');
-                    appointmentForm.reset();
-                }, 100);
+            appointmentForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(appointmentForm);
+
+                try {
+                    const response = await fetch(appointmentForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        appointmentForm.style.display = 'none';
+                        if (formSuccess) formSuccess.style.display = 'block';
+
+                        if (typeof gtag !== 'undefined') {
+                            gtag('event', 'form_submit', {
+                                'event_category': 'lead',
+                                'event_label': 'Appointment Form'
+                            });
+                        }
+                    } else {
+                        alert('Something went wrong. Please try again or call us directly.');
+                    }
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    alert('Submission failed. Please check your connection or call us.');
+                }
             });
         }
 
@@ -2339,14 +2371,7 @@
 
         // Track form submissions
         if (appointmentForm) {
-            appointmentForm.addEventListener('submit', function() {
-                if (typeof gtag !== 'undefined') {
-                    gtag('event', 'form_submit', {
-                        'event_category': 'lead',
-                        'event_label': 'Appointment Form'
-                    });
-                }
-            });
+            // Removed duplicate listener as it is now handled in the main submit handler above
         }
 
         // Header scroll effect
